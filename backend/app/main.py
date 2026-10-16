@@ -114,11 +114,37 @@ app.add_middleware(
 app.include_router(api_router)
 
 
-# ── Root redirect ──────────────────────────────────────────────────────────────
-@app.get("/", include_in_schema=False)
-def root():
-    return {
-        "message": "🛡️ Sentinel Fraud Engine is running",
-        "docs": "/docs",
-        "health": "/api/v1/health",
-    }
+# ── Static / Frontend Files ───────────────────────────────────────────────────
+from pathlib import Path
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+STATIC_DIR = BASE_DIR / "static"
+if not STATIC_DIR.exists():
+    STATIC_DIR = BASE_DIR.parent / "frontend" / "dist"
+
+if STATIC_DIR.exists() and (STATIC_DIR / "assets").exists():
+    app.mount("/assets", StaticFiles(directory=STATIC_DIR / "assets"), name="assets")
+
+    @app.get("/env.js", include_in_schema=False)
+    def serve_env_js():
+        env_file = STATIC_DIR / "env.js"
+        if env_file.exists():
+            return FileResponse(env_file)
+        return FileResponse(STATIC_DIR / "index.html")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    def serve_spa(full_path: str = ""):
+        file_path = STATIC_DIR / full_path
+        if full_path and file_path.is_file():
+            return FileResponse(file_path)
+        return FileResponse(STATIC_DIR / "index.html")
+else:
+    @app.get("/", include_in_schema=False)
+    def root():
+        return {
+            "message": "🛡️ Sentinel Fraud Engine is running",
+            "docs": "/docs",
+            "health": "/api/v1/health",
+        }

@@ -1,5 +1,7 @@
 // Frontend Environment Configuration
-// You can change the backend URL here anytime without touching minified files!
+// Automatically detects the current domain/host, or you can hardcode a specific URL
 window.ENV = {
-  API_URL: "https://sentinel-46uf.onrender.com"
+  API_URL: (typeof window !== "undefined" && window.location && window.location.origin)
+    ? window.location.origin
+    : "https://sentinel-46uf.onrender.com"
 };
