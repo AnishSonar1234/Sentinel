@@ -25,8 +25,7 @@ class Settings(BaseSettings):
     # ── Supabase ──────────────────────────────────────────────────────
     supabase_url: str = ""
     supabase_anon_key: str = ""
-    supabase_service_key: str = ""
-    database_url: str = ""  # postgresql+asyncpg://...
+    database_url: str = "sqlite:///./sentinel.db"
 
     # ── ML Model ──────────────────────────────────────────────────────
     ml_model_path: str = "./ml_pipeline/artifacts/isolation_forest.pkl"

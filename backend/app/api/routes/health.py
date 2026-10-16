@@ -34,5 +34,25 @@ def health_check(request: Request):
             "GET  /api/v1/transactions",
             "GET  /api/v1/user-profile",
             "GET  /api/v1/health",
+            "POST /api/v1/reset-model",
         ],
+    }
+
+
+@router.post("/reset-model", summary="Retrain and reset ML model")
+def reset_model(request: Request):
+    """
+    Retrains the Isolation Forest model on fresh data distribution and
+    reloads the predictor in memory.
+    """
+    from ml_pipeline.trainer import train
+    from ml_pipeline.predictor import FraudPredictor
+
+    train()
+    request.app.state.predictor = FraudPredictor.load()
+
+    return {
+        "status": "ok",
+        "message": "Model successfully retrained and reloaded into memory.",
+        "model_loaded": request.app.state.predictor.is_loaded,
     }

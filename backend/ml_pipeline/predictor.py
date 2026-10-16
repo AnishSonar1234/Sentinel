@@ -73,9 +73,14 @@ class FraudPredictor:
             0.0 = perfectly normal
             1.0 = highly anomalous (likely fraud)
 
-        Isolation Forest score_samples() returns values in roughly [-0.5, 0.5].
-        More negative = more anomalous. We normalize to [0, 1]:
-            anomaly_score = clip(1.0 - (raw + 0.5), 0, 1)
+        Isolation Forest decision_function() returns:
+            > 0 for inliers (normal transactions)
+            < 0 for outliers (anomalous transactions)
+
+        Calibrated via smooth sigmoid curve:
+            dec >= +0.15 -> anomaly <= 0.08 (normal)
+            dec ~ 0.00   -> anomaly ~ 0.55 (borderline)
+            dec <= -0.10 -> anomaly >= 0.85 (fraudulent outlier)
         """
         if not self._loaded:
             logger.warning("Predictor not loaded — using cold-start score")
@@ -84,11 +89,11 @@ class FraudPredictor:
         try:
             X = np.array(feature_vector, dtype=float).reshape(1, -1)
             X_scaled = self.scaler.transform(X)
-            raw_score = float(self.model.score_samples(X_scaled)[0])
+            dec = float(self.model.decision_function(X_scaled)[0])
 
-            # Normalize: more negative raw = higher anomaly score
-            anomaly = float(np.clip(1.0 - (raw_score + 0.5), 0.0, 1.0))
-            return round(anomaly, 4)
+            # Sigmoid calibration centered at 0.02
+            anomaly = float(1.0 / (1.0 + np.exp(16.0 * (dec - 0.02))))
+            return round(float(np.clip(anomaly, 0.01, 0.99)), 4)
 
         except Exception as e:
             logger.error(f"Prediction error: {e} — returning cold-start score")

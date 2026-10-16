@@ -24,6 +24,12 @@ from ml_pipeline.predictor import FraudPredictor
 from ml_pipeline.trainer import train
 
 # ── Logging ────────────────────────────────────────────────────────────────────
+if hasattr(sys.stdout, "reconfigure"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",

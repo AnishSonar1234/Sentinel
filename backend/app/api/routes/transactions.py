@@ -123,7 +123,7 @@ def _analyze_transaction(
 
         # ── [8] Reason codes ───────────────────────────────────────────────────
         reasons = _explain_engine.generate_reasons(
-            features, rule_result, hard_block=False
+            features, rule_result, decision=decision, hard_block=False
         )
 
     # ── [9] Persist transaction ────────────────────────────────────────────────
@@ -154,7 +154,7 @@ def _analyze_transaction(
     _behavior_engine.update_profile(profile, tx, db)
 
     logger.info(
-        f"Transaction {tx.transaction_id} → {decision} "
+        f"Transaction {tx.transaction_id} -> {decision} "
         f"(risk={risk_score}, user={tx.user_id})"
     )
 

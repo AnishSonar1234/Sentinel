@@ -36,7 +36,7 @@ FEATURE_COLS = [
 ]
 
 
-def generate_synthetic_data(n_samples: int = 2000) -> pd.DataFrame:
+def generate_synthetic_data(n_samples: int = 3000) -> pd.DataFrame:
     """
     Generate a realistic mix of normal and fraudulent transactions.
     90% normal / 10% fraud — matches contamination parameter.
@@ -47,20 +47,20 @@ def generate_synthetic_data(n_samples: int = 2000) -> pd.DataFrame:
     n_normal = int(n_samples * 0.90)
     normal = pd.DataFrame({
         "amount": rng.lognormal(mean=5.5, sigma=1.0, size=n_normal),  # ~$245 avg
-        "hour_of_day": rng.integers(8, 22, size=n_normal),
-        "location_hash": rng.integers(0, 100, size=n_normal),
-        "txn_count_1h": rng.integers(0, 4, size=n_normal),
-        "amount_to_avg_ratio": rng.uniform(0.3, 2.5, size=n_normal),
+        "hour_of_day": rng.integers(7, 23, size=n_normal),            # normal daytime/evening
+        "location_hash": rng.integers(0, 1000, size=n_normal),        # uniform across [0, 999]
+        "txn_count_1h": rng.integers(0, 4, size=n_normal),            # normal 0-3 txns/hr
+        "amount_to_avg_ratio": rng.uniform(0.3, 2.2, size=n_normal),  # normal ratio
     })
 
     # Fraudulent transactions (10%) — injected anomaly patterns
     n_fraud = n_samples - n_normal
     fraud = pd.DataFrame({
-        "amount": rng.uniform(3000, 15000, size=n_fraud),       # high amount
-        "hour_of_day": rng.integers(0, 5, size=n_fraud),        # 00:00–05:00
-        "location_hash": rng.integers(800, 1000, size=n_fraud), # unusual location
-        "txn_count_1h": rng.integers(6, 15, size=n_fraud),      # velocity spike
-        "amount_to_avg_ratio": rng.uniform(8.0, 40.0, size=n_fraud),
+        "amount": rng.uniform(3000, 20000, size=n_fraud),             # high amount
+        "hour_of_day": rng.integers(0, 6, size=n_fraud),              # 00:00–05:00 night-time
+        "location_hash": rng.integers(0, 1000, size=n_fraud),         # distributed hashes
+        "txn_count_1h": rng.integers(6, 18, size=n_fraud),            # velocity burst
+        "amount_to_avg_ratio": rng.uniform(6.0, 40.0, size=n_fraud),  # high multiple
     })
 
     df = pd.concat([normal, fraud], ignore_index=True)
@@ -95,12 +95,12 @@ def train(data: pd.DataFrame | None = None) -> None:
     joblib.dump(model, MODEL_PATH)
     joblib.dump(scaler, SCALER_PATH)
 
-    logger.info(f"✅ Model saved → {MODEL_PATH}")
-    logger.info(f"✅ Scaler saved → {SCALER_PATH}")
+    logger.info(f"Model saved -> {MODEL_PATH}")
+    logger.info(f"Scaler saved -> {SCALER_PATH}")
 
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(message)s")
-    print("🏋️  Training Isolation Forest on synthetic data...")
+    print("Training Isolation Forest on synthetic data...")
     train()
-    print("✅ Training complete. Artifacts saved to ml_pipeline/artifacts/")
+    print("Training complete. Artifacts saved to ml_pipeline/artifacts/")

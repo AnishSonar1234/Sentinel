@@ -8,7 +8,10 @@ import json
 import logging
 from typing import Optional
 
-import ollama
+try:
+    import ollama
+except ImportError:
+    ollama = None
 from pydantic import BaseModel, Field
 
 from config.settings import settings
@@ -68,6 +71,14 @@ class AgentInvestigator:
           "bullet_points": ["point 1", "point 2", "point 3"]
         }}
         """
+
+        if ollama is None:
+            return {
+                "summary": "AI Copilot investigation unavailable (ollama package not installed).",
+                "risk_level": "Medium" if transaction.decision == "VERIFY" else ("High" if transaction.decision == "BLOCK" else "Low"),
+                "recommended_action": "Review triggered reason codes and user transaction profile.",
+                "bullet_points": json.loads(transaction.reasons or "[]")
+            }
 
         try:
             response = ollama.chat(
