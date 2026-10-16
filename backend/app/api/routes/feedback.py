@@ -38,11 +38,15 @@ def submit_feedback(payload: FeedbackRequest, db: Session = Depends(get_db)):
         )
 
     tx.feedback_is_fraud = payload.is_fraud
+    if payload.is_fraud is False:
+        tx.decision = "ALLOW"
+    elif payload.is_fraud is True:
+        tx.decision = "BLOCK"
     db.add(tx)
     db.commit()
 
     label = "FRAUD" if payload.is_fraud else "LEGITIMATE"
-    logger.info(f"Feedback received: {payload.transaction_id} → {label}")
+    logger.info(f"Feedback received: {payload.transaction_id} -> {label} (decision updated to {tx.decision})")
 
     return FeedbackResponse(
         status="success",

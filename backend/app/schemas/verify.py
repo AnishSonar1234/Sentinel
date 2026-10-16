@@ -15,3 +15,4 @@ class VerifyResponse(BaseModel):
     status: str          # "success" | "failure"
     message: str
     transaction_id: str
+    verified: bool = False

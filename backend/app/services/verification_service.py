@@ -85,12 +85,14 @@ def verify_otp(
 
     # Success
     tx.otp_verified = True
+    tx.decision = "ALLOW"
     db.add(tx)
     db.commit()
-    logger.info(f"OTP verified successfully for {transaction_id}")
+    logger.info(f"OTP verified successfully for {transaction_id} — decision updated to ALLOW")
 
     return VerifyResponse(
         status="success",
         message="OTP verified. Transaction approved.",
         transaction_id=transaction_id,
+        verified=True,
     )
